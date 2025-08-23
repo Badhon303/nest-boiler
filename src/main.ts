@@ -1,13 +1,17 @@
+// main.ts
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from '@/app.module';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
-import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
 import { ResponseInterceptor } from '@/common/interceptors/response.interceptor';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './config/winstone.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger(winstonConfig),
+  });
   const configService = app.get(ConfigService);
 
   // Security middleware
@@ -30,16 +34,13 @@ async function bootstrap() {
     }),
   );
 
-  // Global filters
-  app.useGlobalFilters(new HttpExceptionFilter());
-
   // Global interceptors
   app.useGlobalInterceptors(new ResponseInterceptor());
 
   // API prefix
   app.setGlobalPrefix('api/v1');
 
-  const port = configService.get('PORT', 3001);
+  const port = configService.get('PORT', 5000);
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
 }

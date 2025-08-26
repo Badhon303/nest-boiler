@@ -13,9 +13,10 @@ import { throttleConfig } from './config/throttle.config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-// import { TaskModule } from './task/task.module';
 import { UserProfileModule } from './user-profile/user-profile.module';
 import { TasksModule } from './task/tasks.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -23,12 +24,15 @@ import { TasksModule } from './task/tasks.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public'), // folder to serve
+      serveRoot: '/public', // URL prefix
+    }),
     TypeOrmModule.forRootAsync(typeOrmConfig),
     ThrottlerModule.forRootAsync(throttleConfig),
     CommonModule,
     UserModule,
     AuthModule,
-    // TaskModule,
     UserProfileModule,
     TasksModule,
   ],

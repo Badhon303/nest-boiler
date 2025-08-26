@@ -19,6 +19,7 @@ import {
   PaginateQuery,
 } from 'nestjs-paginate';
 import { getRelations } from '@/common/utils/populate-query.utils';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class UserProfileService {
@@ -102,6 +103,19 @@ export class UserProfileService {
     currentUser: User,
   ): Promise<UserProfile> {
     const userProfile = await this.findOne(id, currentUser);
+
+    // Check if a new image is being uploaded and an old one exists
+    if (updateUserProfileDto.image && userProfile.image) {
+      try {
+        await unlink(userProfile.image); // Delete the old image file
+      } catch (error) {
+        // Log the error but don't block the update process
+        console.error(
+          `Failed to delete old image: ${userProfile.image}`,
+          error,
+        );
+      }
+    }
 
     Object.assign(userProfile, updateUserProfileDto);
     return this.userProfileRepository.save(userProfile);

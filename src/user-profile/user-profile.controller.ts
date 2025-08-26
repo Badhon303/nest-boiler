@@ -12,6 +12,7 @@ import {
   ClassSerializerInterceptor,
   Post,
   Query,
+  UploadedFile,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -25,12 +26,21 @@ import { Role } from '@/common/constants/roles.constant';
 import { Paginate } from 'nestjs-paginate';
 import type { PaginateQuery, Paginated } from 'nestjs-paginate';
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
+import { ConfigService } from '@nestjs/config';
+import { filePathToPublicUrl } from '@/common/utils/filePathToPublicUrl.utils';
+import { SingleUpload } from '@/common/interceptors/file.interceptor';
+import { FileCategory } from '@/common/constants/files-type.constants';
+import { buildParsePipe } from '@/common/pipes/file-validation.pipe';
+import { RemoveUploadedFileOnErrorInterceptor } from '@/common/interceptors/remove-on-error.interceptor';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('user-profiles')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UserProfileController {
-  constructor(private readonly userProfileService: UserProfileService) {}
+  constructor(
+    private readonly userProfileService: UserProfileService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Post()
   @Roles(Role.ADMIN)
@@ -50,7 +60,6 @@ export class UserProfileController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN)
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @GetUser() user: User,
@@ -59,11 +68,22 @@ export class UserProfileController {
   }
 
   @Patch(':id')
+  @UseInterceptors(
+    SingleUpload('image', FileCategory.Image), // Multer fileFilter enforces image/*
+    new RemoveUploadedFileOnErrorInterceptor(), // cleans up on later errors
+  )
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateUserProfileDto: UpdateUserProfileDto,
+    @Body() body: { data: string },
     @GetUser() user: User,
+    @UploadedFile(buildParsePipe(FileCategory.Image)) // size only
+    file?: Express.Multer.File,
   ): Promise<UserProfile> {
+    const updateUserProfileDto: UpdateUserProfileDto = JSON.parse(body.data);
+    if (file) {
+      const baseUrl = this.config.get<string>('PUBLIC_BACKEND_URL')!;
+      updateUserProfileDto.image = filePathToPublicUrl(file.path, baseUrl);
+    }
     return this.userProfileService.update(id, updateUserProfileDto, user);
   }
 

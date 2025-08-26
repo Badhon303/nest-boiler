@@ -17,14 +17,15 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from '../common/constants/roles.constant';
-// import { UserProfileService } from '../user-profile/user-profile.service';
+import { UserProfileService } from '../user-profile/user-profile.service';
+import { getRelations } from '@/common/utils/populate-query.utils';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    // private userProfileService: UserProfileService,
+    private userProfileService: UserProfileService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -47,34 +48,40 @@ export class UserService {
 
     const savedUser = await this.userRepository.save(user);
 
-    // // Create user profile
-    // await this.userProfileService.create({
-    //   userId: savedUser.id,
-    //   fullName: createUserDto.fullName || createUserDto.username,
-    //   bio: createUserDto.bio || '',
-    // });
+    // Create user profile
+    await this.userProfileService.create({
+      userId: savedUser.id,
+      fullName: createUserDto.fullName || createUserDto.username || '',
+      bio: createUserDto.bio || '',
+    });
 
     return this.findOne(savedUser.id);
   }
 
-  async findAll(query: PaginateQuery): Promise<Paginated<User>> {
+  async findAll(
+    query: PaginateQuery,
+    populate?: string | string[],
+  ): Promise<Paginated<User>> {
+    const allowedUserRelations = ['profile'];
+    const relationsToPopulate = getRelations(populate, allowedUserRelations);
+
     const config: PaginateConfig<User> = {
       sortableColumns: ['email', 'role', 'createdAt'],
       searchableColumns: ['email', 'role'],
       defaultSortBy: [['createdAt', 'DESC']],
-      // relations: ['profile'],
+      relations: relationsToPopulate,
       filterableColumns: {
         role: true,
       },
     };
 
-    return paginate(query, this.userRepository, config);
+    return await paginate(query, this.userRepository, config);
   }
 
-  async findOne(id: string): Promise<User> {
+  async findOne(id: string, populate?: string | string[]): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      // relations: ['profile'],
+      relations: ['profile'],
     });
 
     if (!user) {
@@ -87,7 +94,7 @@ export class UserService {
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { email },
-      // relations: ['profile'],
+      relations: ['profile'],
     });
 
     if (!user) {
@@ -130,13 +137,17 @@ export class UserService {
     Object.assign(user, updateUserDto);
     await this.userRepository.save(user);
 
-    // // Update profile if needed
-    // if (updateUserDto.fullName || updateUserDto.bio) {
-    //   await this.userProfileService.update(user.profile.id, {
-    //     fullName: updateUserDto.fullName,
-    //     bio: updateUserDto.bio,
-    //   });
-    // }
+    // Update profile if needed
+    if (updateUserDto.fullName || updateUserDto.bio) {
+      await this.userProfileService.update(
+        user.profile.id,
+        {
+          fullName: updateUserDto.fullName,
+          bio: updateUserDto.bio,
+        },
+        currentUser,
+      );
+    }
 
     return this.findOne(id);
   }

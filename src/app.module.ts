@@ -13,6 +13,9 @@ import { throttleConfig } from './config/throttle.config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+// import { TaskModule } from './task/task.module';
+import { UserProfileModule } from './user-profile/user-profile.module';
+import { TasksModule } from './task/tasks.module';
 
 @Module({
   imports: [
@@ -25,6 +28,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     CommonModule,
     UserModule,
     AuthModule,
+    // TaskModule,
+    UserProfileModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [

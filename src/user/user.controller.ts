@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   ClassSerializerInterceptor,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -37,8 +38,11 @@ export class UserController {
 
   @Get()
   @Roles(Role.ADMIN)
-  findAll(@Paginate() query: PaginateQuery): Promise<Paginated<User>> {
-    return this.usersService.findAll(query);
+  findAll(
+    @Paginate() query: PaginateQuery,
+    @Query('populate') populate?: string | string[],
+  ): Promise<Paginated<User>> {
+    return this.usersService.findAll(query, populate);
   }
 
   @Get('me')

@@ -9,8 +9,8 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Role } from '../../common/constants/roles.constant';
-// import { UserProfile } from '../../user-profile/entities/user-profile.entity';
-// import { Task } from '../../tasks/entities/task.entity';
+import { UserProfile } from '../../user-profile/entities/user-profile.entity';
+import { Task } from '@/task/entities/task.entity';
 
 @Entity('users')
 export class User {
@@ -34,17 +34,11 @@ export class User {
   })
   role: Role;
 
-  //   @OneToOne(() => UserProfile, (profile) => profile.user, {
-  //     cascade: true,
-  //     onDelete: 'CASCADE',
-  //   })
-  //   profile: UserProfile;
+  @OneToOne(() => UserProfile, (profile) => profile.user)
+  profile: UserProfile;
 
-  //   @OneToMany(() => Task, (task) => task.owner, {
-  //     cascade: true,
-  //     onDelete: 'CASCADE',
-  //   })
-  //   tasks: Task[];
+  @OneToMany(() => Task, (task) => task.owner)
+  tasks: Task[];
 
   @CreateDateColumn()
   createdAt: Date;

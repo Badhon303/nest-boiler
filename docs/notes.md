@@ -1,9 +1,17 @@
+// src/common/constants/file-type.constant.ts
+// src/common/constants/upload.constant.ts
+// src/config/multer.config.ts
+// src/common/pipes/file-size-validation.pipe.ts
+// src/common/interceptors/file.interceptor.ts
+// src/files/files.controller.ts
+// src/common/interceptors/remove-on-error.interceptor.ts
+
 // src/files/files.controller.ts
 import {
 Controller, Post, UseInterceptors, UploadedFile, UploadedFiles,
 Body, BadRequestException,
 } from '@nestjs/common';
-import { FileCategory } from '@/upload/file-category';
+import { FileType } from '@/upload/file-category';
 import { SingleUpload, MultiUpload, FieldUploads } from '@/upload/interceptors';
 import { buildParsePipe } from '@/upload/validation-pipe';
 
@@ -11,21 +19,21 @@ import { buildParsePipe } from '@/upload/validation-pipe';
 export class FilesController {
 // Image (single)
 @Post('image')
-@UseInterceptors(SingleUpload('file', FileCategory.Image))
-uploadImage(@UploadedFile(buildParsePipe(FileCategory.Image)) file: Express.Multer.File) {
+@UseInterceptors(SingleUpload('file', FileType.Image))
+uploadImage(@UploadedFile(buildParsePipe(FileType.Image)) file: Express.Multer.File) {
 return { ok: true, path: file.path };
 }
 
 // PDF (single)
 @Post('pdf')
-@UseInterceptors(SingleUpload('file', FileCategory.Pdf))
-uploadPdf(@UploadedFile(buildParsePipe(FileCategory.Pdf)) file: Express.Multer.File) {
+@UseInterceptors(SingleUpload('file', FileType.Pdf))
+uploadPdf(@UploadedFile(buildParsePipe(FileType.Pdf)) file: Express.Multer.File) {
 return { ok: true, path: file.path };
 }
 
 // Audio (multiple)
 @Post('audios')
-@UseInterceptors(MultiUpload('files', 5, FileCategory.Audio))
+@UseInterceptors(MultiUpload('files', 5, FileType.Audio))
 uploadAudios(@UploadedFiles() files: Express.Multer.File[]) {
 if (!files?.length) throw new BadRequestException('No files uploaded');
 return { ok: true, count: files.length, items: files.map(f => f.path) };
@@ -34,7 +42,7 @@ return { ok: true, count: files.length, items: files.map(f => f.path) };
 // Mixed fields: thumbnail (image) + doc (pdf)
 // (Here both fields will share the same category rules. If you want per-field rules, create two endpoints or two field-specific interceptors.)
 @Post('thumbnail-and-doc')
-@UseInterceptors(FieldUploads([{ name: 'thumbnail', maxCount: 1 }, { name: 'doc', maxCount: 1 }], FileCategory.Image))
+@UseInterceptors(FieldUploads([{ name: 'thumbnail', maxCount: 1 }, { name: 'doc', maxCount: 1 }], FileType.Image))
 uploadThumbAndDoc(
 @UploadedFiles()
 files: { thumbnail?: Express.Multer.File[]; doc?: Express.Multer.File[] },

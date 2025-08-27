@@ -1,5 +1,5 @@
-// src/upload/file-category.ts
-export enum FileCategory {
+// src/common/constants/file-type.constant.ts
+export enum FileType {
   Image = 'image',
   Pdf = 'pdf',
   Audio = 'audio',

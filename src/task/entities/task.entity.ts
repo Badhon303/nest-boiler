@@ -21,6 +21,12 @@ export class Task {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ default: false })
+  isCompleted: boolean;
+
+  @Column({ nullable: true })
+  doc: string;
+
   @Column('uuid')
   ownerId: string;
 

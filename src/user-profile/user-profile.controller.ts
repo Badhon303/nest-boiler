@@ -29,8 +29,8 @@ import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { ConfigService } from '@nestjs/config';
 import { filePathToPublicUrl } from '@/common/utils/filePathToPublicUrl.utils';
 import { SingleUpload } from '@/common/interceptors/file.interceptor';
-import { FileCategory } from '@/common/constants/files-type.constants';
-import { buildParsePipe } from '@/common/pipes/file-validation.pipe';
+import { FileType } from '@/common/constants/files-type.constant';
+import { fileSizeParsePipe } from '@/common/pipes/file-size-validation.pipe';
 import { RemoveUploadedFileOnErrorInterceptor } from '@/common/interceptors/remove-on-error.interceptor';
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -69,14 +69,14 @@ export class UserProfileController {
 
   @Patch(':id')
   @UseInterceptors(
-    SingleUpload('image', FileCategory.Image), // Multer fileFilter enforces image/*
+    SingleUpload('image', FileType.Image), // Multer fileFilter enforces image/*
     new RemoveUploadedFileOnErrorInterceptor(), // cleans up on later errors
   )
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { data: string },
     @GetUser() user: User,
-    @UploadedFile(buildParsePipe(FileCategory.Image)) // size only
+    @UploadedFile(fileSizeParsePipe(FileType.Image))
     file?: Express.Multer.File,
   ): Promise<UserProfile> {
     const updateUserProfileDto: UpdateUserProfileDto = JSON.parse(body.data);

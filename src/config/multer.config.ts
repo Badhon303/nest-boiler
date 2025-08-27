@@ -1,15 +1,13 @@
-// src/upload/multer-factory.ts
-import { diskStorage, FileFilterCallback, MulterError } from 'multer';
+// src/config/multer.config.ts
+import { diskStorage, FileFilterCallback } from 'multer';
 import { extname } from 'path';
 import { Options as MulterOptions } from 'multer';
-import { FileCategory } from '@/common/constants/files-type.constants';
-import { CATEGORY_RULES } from '@/common/utils/upload.rules';
+import { FileType } from '@/common/constants/files-type.constant';
+import { CATEGORY_RULES } from '@/common/constants/upload.constant';
 import * as fs from 'fs';
 import { BadRequestException } from '@nestjs/common';
 
-export function multerOptionsForCategory(
-  category: FileCategory,
-): MulterOptions {
+export function multerOptionsForCategory(category: FileType): MulterOptions {
   const rule = CATEGORY_RULES[category];
 
   if (!fs.existsSync(rule.dest)) {

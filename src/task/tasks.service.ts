@@ -17,6 +17,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { User } from '../user/entities/user.entity';
 import { Role } from '../common/constants/roles.constant';
+import { join } from 'path';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class TasksService {
@@ -79,6 +81,23 @@ export class TasksService {
     user: User,
   ): Promise<Task> {
     const task = await this.findOne(id, user);
+
+    // Check if a new document is being uploaded and an old one exists
+    if (updateTaskDto.doc && task.doc) {
+      try {
+        const DOCUMENT_UPLOAD_DIR = join(
+          process.cwd(),
+          'public',
+          'uploads',
+          'docs',
+        );
+        const filename = task.doc.split('/').pop() || '';
+        const localFilePath = join(DOCUMENT_UPLOAD_DIR, filename);
+        await unlink(localFilePath); // Delete the old document file
+      } catch (error) {
+        console.error(`Failed to delete old document: ${task.doc}`, error);
+      }
+    }
 
     Object.assign(task, updateTaskDto);
     return this.taskRepository.save(task);

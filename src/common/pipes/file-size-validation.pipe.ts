@@ -1,9 +1,10 @@
-// buildParsePipe.ts — size only (or remove this entirely)
+// src/common/pipes/file-size-validation.pipe.ts
+// size only
 import { ParseFilePipe, MaxFileSizeValidator } from '@nestjs/common';
-import { FileCategory } from '../constants/files-type.constants';
-import { CATEGORY_RULES } from '../utils/upload.rules';
+import { FileType } from '../constants/files-type.constant';
+import { CATEGORY_RULES } from '../constants/upload.constant';
 
-export function buildParsePipe(category: FileCategory, required = true) {
+export function fileSizeParsePipe(category: FileType, required = false) {
   const rule = CATEGORY_RULES[category];
   return new ParseFilePipe({
     fileIsRequired: required,

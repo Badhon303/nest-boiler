@@ -19,6 +19,7 @@ import {
   PaginateQuery,
 } from 'nestjs-paginate';
 import { getRelations } from '@/common/utils/populate-query.utils';
+import { join } from 'path';
 import { unlink } from 'fs/promises';
 
 @Injectable()
@@ -107,7 +108,15 @@ export class UserProfileService {
     // Check if a new image is being uploaded and an old one exists
     if (updateUserProfileDto.image && userProfile.image) {
       try {
-        await unlink(userProfile.image); // Delete the old image file
+        const IMAGE_UPLOAD_DIR = join(
+          process.cwd(),
+          'public',
+          'uploads',
+          'images',
+        );
+        const filename = userProfile.image.split('/').pop() || '';
+        const localFilePath = join(IMAGE_UPLOAD_DIR, filename);
+        await unlink(localFilePath); // Delete the old image file
       } catch (error) {
         // Log the error but don't block the update process
         console.error(

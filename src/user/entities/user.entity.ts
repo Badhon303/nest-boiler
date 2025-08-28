@@ -40,6 +40,14 @@ export class User {
   @OneToMany(() => Task, (task) => task.owner)
   tasks: Task[];
 
+  @Column({ nullable: true })
+  @Exclude()
+  resetPasswordToken: string;
+
+  @Column({ nullable: true })
+  @Exclude()
+  resetPasswordExpires: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -17,6 +17,7 @@ import { UserProfileModule } from './user-profile/user-profile.module';
 import { TasksModule } from './task/tasks.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { join } from 'path';
     AuthModule,
     UserProfileModule,
     TasksModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

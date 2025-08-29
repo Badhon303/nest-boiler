@@ -6,9 +6,13 @@ import { Role } from '../common/constants/roles.constant';
 
 async function seed() {
   const dataSource = new DataSource({
-    type: 'sqlite',
-    database: './db.sqlite',
-    entities: [User, UserProfile],
+    type: 'postgres',
+    host: 'localhost',
+    port: 5432,
+    username: 'alam',
+    password: 'Asdfgh@11',
+    database: 'db_two',
+    entities: ['src/**/*.entity{.ts,.js}'],
     synchronize: true,
   });
 

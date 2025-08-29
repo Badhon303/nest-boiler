@@ -10,7 +10,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { Role } from '../../common/constants/roles.constant';
 import { UserProfile } from '../../user-profile/entities/user-profile.entity';
-import { Task } from '@/task/entities/task.entity';
+import { Task } from '../../task/entities/task.entity';
 
 @Entity('users')
 export class User {
@@ -34,7 +34,7 @@ export class User {
   })
   role: Role;
 
-  @OneToOne(() => UserProfile, (profile) => profile.user)
+  @OneToOne(() => UserProfile, (profile) => profile.user, { cascade: true })
   profile: UserProfile;
 
   @OneToMany(() => Task, (task) => task.owner)

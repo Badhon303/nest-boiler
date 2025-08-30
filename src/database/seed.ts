@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../user/entities/user.entity';
@@ -7,11 +8,11 @@ import { Role } from '../common/constants/roles.constant';
 async function seed() {
   const dataSource = new DataSource({
     type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'alam',
-    password: 'Asdfgh@11',
-    database: 'db_two',
+    host: process.env.POSTGRES_HOST,
+    port: Number(process.env.POSTGRES_PORT),
+    username: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    database: process.env.POSTGRES_DATABASE,
     entities: ['src/**/*.entity{.ts,.js}'],
     synchronize: true,
   });

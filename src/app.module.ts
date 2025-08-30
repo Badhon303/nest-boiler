@@ -1,11 +1,11 @@
 // app.module.ts
 import { Module, Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from '@/app.controller';
-import { AppService } from '@/app.service';
-import { UserModule } from '@/user/user.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from '@/config/typeorm.config';
+import { typeOrmConfig } from './config/typeorm.config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';

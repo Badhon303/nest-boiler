@@ -1,0 +1,16 @@
+services:
+  app:
+    # Use the pre-built image from your Docker registry
+    image: badhon303/todo-nest:latest
+
+    # Map the host's port 80 (or 443) to the container's port 5000
+    # In a real-world scenario, you'd have a reverse proxy like NGINX
+    # handling the traffic on port 80/443
+    ports:
+      - '1337:1337'
+
+    env_file:
+      - .env # if you use it
+
+    # Restart the container if it exits unexpectedly
+    restart: unless-stopped

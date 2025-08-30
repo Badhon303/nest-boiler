@@ -1,23 +1,35 @@
-# 1. Base image
-FROM node:20-alpine
+# Stage 1: Build the NestJS application
+FROM node:20-alpine AS builder
 
-# 2. Set working directory
+# Set the working directory
 WORKDIR /app
 
-# 3. Copy package.json and package-lock.json
+# Copy package.json and package-lock.json to leverage Docker caching
 COPY package*.json ./
 
-# 4. Install dependencies
-RUN npm install
+# Install all dependencies including devDependencies for the build step
+RUN npm ci
 
-# 5. Copy the rest of the code
+# Copy the rest of the source code
 COPY . .
 
-# 6. Build the NestJS project
+# Build the application
 RUN npm run build
 
-# 7. Expose port (default NestJS port)
+# Stage 2: Create the final, lightweight production image
+FROM node:20-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the production dependencies from the builder stage
+# A multi-stage build's primary purpose is to copy only what is needed for production.
+# The builder stage needs dev dependencies for the build, but the final stage does not.
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+# Expose the application port
 EXPOSE 5000
 
-# 8. Start the app
+# Command to start the application
 CMD ["node", "dist/main"]

@@ -18,6 +18,8 @@ import { TasksModule } from './task/tasks.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MailModule } from './mail/mail.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { cacheConfig } from './config/cache.config';
 
 @Module({
   imports: [
@@ -29,6 +31,7 @@ import { MailModule } from './mail/mail.module';
       rootPath: join(process.cwd(), 'public'), // folder to serve
       serveRoot: '/public', // URL prefix
     }),
+    CacheModule.registerAsync(cacheConfig),
     TypeOrmModule.forRootAsync(typeOrmConfig),
     ThrottlerModule.forRootAsync(throttleConfig),
     CommonModule,

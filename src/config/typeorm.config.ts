@@ -42,9 +42,11 @@ export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
     const database = config.get<string>('POSTGRES_DATABASE');
 
     // Use src in dev (ts-node), dist in prod (compiled)
-    const entities = isProd(nodeEnv)
-      ? ['dist/**/*.entity.js']
-      : ['dist/**/*.entity.ts'];
+    // const entities = isProd(nodeEnv)
+    //   ? ['dist/**/*.entity.js']
+    //   : ['src/**/*.entity.ts'];
+
+    const entities = ['dist/**/*.entity.js'];
 
     // SSL logic: enable in prod or when explicitly requested
     const sslRequired =
@@ -60,7 +62,8 @@ export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
         : { host, port, username, password, database }),
       entities,
       synchronize: !isProd(nodeEnv),
-      logging: nodeEnv === 'development',
+      // logging: nodeEnv === 'development',
+      logging: false,
       ssl,
       // Optional: tune connection
       extra: {

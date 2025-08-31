@@ -45,6 +45,7 @@ export class TasksService {
     // Invalidate lists
     await this.bumpListVersionForAdmin();
     await this.bumpListVersionForUser(user.id);
+    console.log(`Cache: Invalidated list versions after creating new task.`);
 
     return this.taskRepository.save(task);
   }
@@ -52,8 +53,16 @@ export class TasksService {
   async findAll(query: PaginateQuery, user: User): Promise<Paginated<Task>> {
     const cacheKey = await this.generatePaginatedCacheKey(query, user);
     const cached = await this.cacheManager.get<Paginated<Task>>(cacheKey);
-    if (cached) return cached;
+    if (cached) {
+      console.log(
+        `Cache: Serving paginated results for key "${cacheKey}" from cache. ✅`,
+      );
+      return cached;
+    }
 
+    console.log(
+      `Cache: Cache miss for paginated results. Fetching from database. ⏳`,
+    );
     const config: PaginateConfig<Task> = {
       sortableColumns: ['title', 'createdAt', 'updatedAt'],
       searchableColumns: ['title', 'description'],
@@ -73,6 +82,9 @@ export class TasksService {
       result,
       this.CACHE_TTL.PAGINATED_RESULTS,
     );
+    console.log(
+      `Cache: Stored new paginated results for key "${cacheKey}". 💾`,
+    );
     return result;
   }
 
@@ -82,8 +94,16 @@ export class TasksService {
     const cacheKey = this.generateCacheKey('task', userId, taskId);
 
     const cachedTask = await this.cacheManager.get<Task>(cacheKey);
-    if (cachedTask) return cachedTask;
+    if (cachedTask) {
+      console.log(
+        `Cache: Serving task ID "${id}" for user "${userId}" from cache. ✅`,
+      );
+      return cachedTask;
+    }
 
+    console.log(
+      `Cache: Cache miss for task ID "${id}". Fetching from database. ⏳`,
+    );
     const task = await this.taskRepository.findOne({ where: { id } });
     if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
 
@@ -92,7 +112,10 @@ export class TasksService {
     }
 
     await this.cacheManager.set(cacheKey, task, this.CACHE_TTL.SINGLE_TASK);
-    await this.addSingleTaskKeyToIndex(task.id, cacheKey); // <-- track this key
+    await this.addSingleTaskKeyToIndex(task.id, cacheKey);
+    console.log(
+      `Cache: Stored new task ID "${id}" in cache for user "${userId}". 💾`,
+    );
     return task;
   }
 
@@ -110,6 +133,7 @@ export class TasksService {
         const filename = task.doc.split('/').pop() || '';
         const localFilePath = join(DOCUMENT_UPLOAD_DIR, filename);
         await unlink(localFilePath);
+        console.log(`Document: Deleted old document at "${localFilePath}".`);
       } catch (err) {
         console.error(`Failed to delete old document: ${task.doc}`, err);
       }
@@ -120,10 +144,14 @@ export class TasksService {
 
     // Invalidate single-task caches for any viewers (owner/admins)
     await this.invalidateSingleTaskCaches(task.id);
+    console.log(
+      `Cache: Invalidated single-task caches for task ID "${task.id}". 🧹`,
+    );
 
     // Invalidate lists (admin + owner)
     await this.bumpListVersionForAdmin();
     await this.bumpListVersionForUser(task.ownerId);
+    console.log(`Cache: Invalidated list versions after updating task.`);
 
     return saved;
   }
@@ -134,10 +162,14 @@ export class TasksService {
 
     // Invalidate single-task caches
     await this.invalidateSingleTaskCaches(task.id);
+    console.log(
+      `Cache: Invalidated single-task caches for task ID "${task.id}" after deletion. 🧹`,
+    );
 
     // Invalidate lists (admin + owner)
     await this.bumpListVersionForAdmin();
     await this.bumpListVersionForUser(task.ownerId);
+    console.log(`Cache: Invalidated list versions after removing task.`);
 
     return removed;
   }
@@ -159,11 +191,15 @@ export class TasksService {
   private async bumpListVersionForAdmin(): Promise<void> {
     const cur = await this.getListVersionForAdmin();
     await this.cacheManager.set(this.ADMIN_LIST_VERSION_KEY, cur + 1);
+    console.log(`Cache: Admin list version bumped to ${cur + 1}.`);
   }
   private async bumpListVersionForUser(userId: string): Promise<void> {
     const k = this.USER_LIST_VERSION_KEY(userId);
     const cur = await this.getListVersionForUser(userId);
     await this.cacheManager.set(k, cur + 1);
+    console.log(
+      `Cache: User list version for "${userId}" bumped to ${cur + 1}.`,
+    );
   }
 
   // ---- SINGLE TASK KEY INDEX HELPERS ----
@@ -179,18 +215,24 @@ export class TasksService {
     const set = new Set(existing ?? []);
     set.add(key);
     await this.cacheManager.set(idxKey, Array.from(set));
+    console.log(`Cache: Added key "${key}" to index for task ID "${taskId}".`);
   }
 
   private async invalidateSingleTaskCaches(taskId: string): Promise<void> {
     const idxKey = this.singleIndexKey(taskId);
     const keys = await this.cacheManager.get<string[]>(idxKey);
     if (Array.isArray(keys)) {
+      console.log(
+        `Cache: Found ${keys.length} keys to invalidate for task ID "${taskId}".`,
+      );
       for (const k of keys) {
         await this.cacheManager.del(k);
+        console.log(`Cache: Deleted key "${k}".`);
       }
     }
     // clear the index itself
     await this.cacheManager.del(idxKey);
+    console.log(`Cache: Cleared index for task ID "${taskId}".`);
   }
 
   // ===== CACHE MANAGEMENT HELPER METHODS =====

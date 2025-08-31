@@ -18,7 +18,7 @@ import { TasksModule } from './task/tasks.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MailModule } from './mail/mail.module';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { cacheConfig } from './config/cache.config';
 
 @Module({
@@ -52,6 +52,11 @@ import { cacheConfig } from './config/cache.config';
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    // Auto-cache GET responses unless overridden
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
     },
   ],
 })
